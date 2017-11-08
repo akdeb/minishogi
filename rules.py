@@ -40,8 +40,8 @@ P/p - Pawn
 Rules:
 Pawn must be automatically promoted
 Pieces:
-+k/+K - NOT POSSIBLE
-+g/+G - NOT POSSIBLE
+----- +k/+K - NOT POSSIBLE
+----- +g/+G - NOT POSSIBLE
 +s/+S - Promoted Silver general (Moves like Gold general)
 +b/+B - Promoted Bishop [called Dragon horse] (Moves like Bishop/King)
 +r/+R - Promoted Rook [called Dragon king] (Moves like Rook/King)
