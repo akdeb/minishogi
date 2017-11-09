@@ -8,7 +8,7 @@ def fileMode():
     path = sys.argv[2]
     #pprint.pprint(retVal)
     game = playGame(parseTestCase(path))
-    print(game)
+    #print(game)
     return
 
 def playGame(ret):

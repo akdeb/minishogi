@@ -18,10 +18,14 @@ allPossiblePieces = {'p','P',
 
 class Minishogi(object):
     def __init__(self, vals):
-        self.currPlayer = lower
+        self.currentPlayer = lower
+        self.currentMove = ''
+
         self.boardPieces = {}   #dict of objects
-        self.capturedPieces = {'lower':[], 'UPPER':[]}
+        self.capturedPieces = {lower:[], upper:[]}
+
         self.boardImage = [['' for i in range(5)] for j in range(5)]
+        self.capturedImage = {lower:[], upper:[]}
 
         self.numberOfMoves = 0
         self.gameOver = False
@@ -32,14 +36,22 @@ class Minishogi(object):
         self.placeAllPieces(vals['initialPieces'], vals['lowerCaptures'], vals['upperCaptures'])
         self.makeMovesArray(vals['moves'])
         self.main()
-        #self.display()
 
-# FIXME SOME ERROR SOMEWHERE. NOT TAKING ALL MOVES 
+        #for debugging only
+        # self.printPieces()
+        # self.display()
+
+    #HACK FOR DEBUGGING PURPOSES ONLY
+    def printPieces(self):
+        pprint.pprint(self.boardPieces)
 
     def makeMovesArray(self, moves):
         for move in moves:
+            if self.numberOfMoves == 400:
+                self.gameOverExiting(3)
+                break
             sequence = move.split(' ')
-
+            self.currentMove = move
             # case1: move <pos1> <pos2> (promote)
             # case2: drop <piece> <pos>
             # case3: anything else
@@ -48,7 +60,8 @@ class Minishogi(object):
                     self.gameOverExiting(1)
                     break
                 else:
-                    self.display()
+                    #self.display()
+                    #print(sequence)
                     self.applyMove(sequence)
             elif (sequence[0] == 'drop') and (len(sequence) == 3):
                 if not (self.isLegalPosition(sequence[2])):
@@ -60,31 +73,44 @@ class Minishogi(object):
             else:
                 self.gameOverExiting(1)
                 break
-        if self.gameOver:
-            return
+            self.currentPlayer = oppositePlayer[self.currentPlayer]
+            self.numberOfMoves+=1
+
+        if not self.gameOver:
+            self.currentPlayer = oppositePlayer[self.currentPlayer] #needed because all moves over and it was the previous person's turn
+            self.gameOverExiting(3)
+        return
+
 
     def applyMove(self, move):
         start = self.getCoordinates(move[1])
         end = self.getCoordinates(move[2])
+
+        #handle all edge cases
         if start not in self.boardPieces:
             self.gameOverExiting(1)
             return
-        if self.boardPieces[start].getPlayer() != self.currPlayer:
+        if self.boardPieces[start].getPlayer() != self.currentPlayer:
             self.gameOverExiting(1)
             return
         if end in self.boardPieces:
-            if self.boardPieces[end].getPlayer == self.currPlayer:
+            if self.boardPieces[end].getPlayer() == self.currentPlayer:
                 self.gameOverExiting(1)
                 return
             else:
                 self.applyCapture(move)
+
+        #modify board image
         self.boardImage[end[0]][end[1]] = self.boardImage[start[0]][start[1]]
         self.boardImage[start[0]][start[1]] = ''
+
+        #modify board pieces dict
         self.boardPieces[end] = self.boardPieces[start]
         self.boardPieces[end].setPosition(end)
         del self.boardPieces[start]
 
     def applyCapture(self, move):
+        
         pass
 
     def applyDrop(self, move):
@@ -112,23 +138,23 @@ class Minishogi(object):
     def gameOverExiting(self, case):
         self.gameOver = True
         if case == 1:
-            self.outMessage = oppositePlayer[self.currPlayer] + ' player wins. Illegal Move.'
+            self.outMessage = oppositePlayer[self.currentPlayer] + ' player wins. Illegal Move.'
         elif case == 2:
-            self.outMessage = self.currPlayer + ' player wins. Checkmate.'
+            self.outMessage = self.currentPlayer + ' player wins. Checkmate.'
         elif case == 3:
-            self.outMessage = 'Tie game. Too many moves.'
+            self.outMessage = 'Tie game.  Too many moves.'
 
 
     def placeAllPieces(self, piecesOnBoard, lowerCaptures, upperCaptures):
         for pc in lowerCaptures:
-            self.capturedPieces['lower'].append(shogiPieces[pc](pc, 'lower'))
+            self.capturedPieces[lower].append(shogiPieces[pc](pc, lower))
         for pc in upperCaptures:
-            self.capturedPieces['UPPER'].append(shogiPieces[pc.lower()](pc, 'UPPER'))
+            self.capturedPieces[upper].append(shogiPieces[pc.lower()](pc, upper))
         for pc in piecesOnBoard:
             coord = self.getCoordinates(pc['position'])
             self.boardImage[coord[0]][coord[1]] = pc['piece']
 
-            #IDEA TODO do we need to consider this??
+            # case where piece is illegal
             if pc['piece'] not in allPossiblePieces:
                 self.gameOverExiting(1)
                 break
@@ -141,8 +167,8 @@ class Minishogi(object):
 
     def whichPlayer(self, pieceID):
         if len(pieceID)==2:
-            return 'UPPER' if pieceID[1].isupper() else 'lower'
-        return 'UPPER' if pieceID.isupper() else 'lower'
+            return upper if pieceID[1].isupper() else lower
+        return upper if pieceID.isupper() else lower
 
 
     def getCoordinates(self, position):
@@ -150,10 +176,11 @@ class Minishogi(object):
 
 
     def main(self):
-        if self.gameOver:
-            print('game over bro; print outMessage here')
-        elif not self.gameOver:
-            print('still going I guess')
+        print(self.currentPlayer + ' player action: ' + self.currentMove)
+        print(stringifyBoard(self.boardImage))
+        print('Captures UPPER: ' + ' '.join([i.getPieceID() for i in self.capturedPieces[upper]]))
+        print('Captures lower: ' + ' '.join([i.getPieceID() for i in self.capturedPieces[lower]]))
+        print('\n' + self.outMessage)
 
     # JUST FOR DEBUGGING
     def display(self):
@@ -161,7 +188,7 @@ class Minishogi(object):
         print(stringifyBoard(self.boardImage))
 
     def __str__(self):
-        return str("This is minishogi.")
+        return 'This is minishogi'
 
 
 class Piece:
@@ -253,7 +280,7 @@ shogiPieces = {'k':King,
                'b':Bishop}
 
 #promoted pieces and how they move
-#TODO if trying to promote k or g, throw error
+#if trying to promote k or g, throw error
 promotion = {'s':Gold,
              'b':dragonHorse,
              'r':dragonKing,
