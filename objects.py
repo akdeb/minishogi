@@ -38,7 +38,7 @@ class Minishogi(object):
         self.main()
 
         #for debugging only
-        # self.printPieces()
+        #self.printPieces()
         # self.display()
 
     #HACK FOR DEBUGGING PURPOSES ONLY
@@ -47,9 +47,6 @@ class Minishogi(object):
 
     def makeMovesArray(self, moves):
         for move in moves:
-            if self.numberOfMoves == 400:
-                self.gameOverExiting(3)
-                break
             sequence = move.split(' ')
             self.currentMove = move
             # case1: move <pos1> <pos2> (promote)
@@ -58,7 +55,6 @@ class Minishogi(object):
             if (sequence[0] == 'move') and (len(sequence) == 3 or len(sequence) == 4):
                 if not (self.isLegalPosition(sequence[1]) and self.isLegalPosition(sequence[2])):
                     self.gameOverExiting(1)
-                    break
                 else:
                     #self.display()
                     #print(sequence)
@@ -66,19 +62,25 @@ class Minishogi(object):
             elif (sequence[0] == 'drop') and (len(sequence) == 3):
                 if not (self.isLegalPosition(sequence[2])):
                     self.gameOverExiting(1)
-                    break
                 else:
                     self.applyDrop(sequence)
-
             else:
                 self.gameOverExiting(1)
+            if self.gameOver:
                 break
+
+            #TODO try to fix the currentPlayer repitition problem
             self.currentPlayer = oppositePlayer[self.currentPlayer]
             self.numberOfMoves+=1
 
+            if self.numberOfMoves == 400:
+                self.currentPlayer = oppositePlayer[self.currentPlayer]
+                self.gameOverExiting(3)
+                break
+
         if not self.gameOver:
-            self.currentPlayer = oppositePlayer[self.currentPlayer] #needed because all moves over and it was the previous person's turn
-            self.gameOverExiting(3)
+            self.currentPlayer = oppositePlayer[self.currentPlayer]
+            self.gameOverExiting(200)
         return
 
 
@@ -98,20 +100,24 @@ class Minishogi(object):
                 self.gameOverExiting(1)
                 return
             else:
-                self.applyCapture(move)
-
-        #modify board image
-        self.boardImage[end[0]][end[1]] = self.boardImage[start[0]][start[1]]
-        self.boardImage[start[0]][start[1]] = ''
+                self.applyCapture(start, end)
 
         #modify board pieces dict
         self.boardPieces[end] = self.boardPieces[start]
         self.boardPieces[end].setPosition(end)
         del self.boardPieces[start]
 
-    def applyCapture(self, move):
-        
-        pass
+        #first move a piece and then promote
+        if len(move) == 4:
+            self.applyPromote(move)
+
+    def correctCase(self, piece):
+        return piece.lower() if self.currentPlayer==lower else piece.upper()
+
+    def applyCapture(self, start, end):
+        capPiece = self.correctCase(self.boardPieces[end].getPieceID())
+        self.capturedPieces[self.currentPlayer].append(shogiPieces[capPiece.lower()](capPiece[1] if len(capPiece) == 2 else capPiece, self.currentPlayer))
+        del self.boardPieces[end]
 
     def applyDrop(self, move):
         pass
@@ -143,7 +149,8 @@ class Minishogi(object):
             self.outMessage = self.currentPlayer + ' player wins. Checkmate.'
         elif case == 3:
             self.outMessage = 'Tie game.  Too many moves.'
-
+        else:
+            self.outMessage = oppositePlayer[self.currentPlayer] + '>'
 
     def placeAllPieces(self, piecesOnBoard, lowerCaptures, upperCaptures):
         for pc in lowerCaptures:
@@ -151,18 +158,12 @@ class Minishogi(object):
         for pc in upperCaptures:
             self.capturedPieces[upper].append(shogiPieces[pc.lower()](pc, upper))
         for pc in piecesOnBoard:
-            coord = self.getCoordinates(pc['position'])
-            self.boardImage[coord[0]][coord[1]] = pc['piece']
-
             # case where piece is illegal
             if pc['piece'] not in allPossiblePieces:
                 self.gameOverExiting(1)
                 break
-
-            if len(pc['piece']) == 1:
-                self.boardPieces[coord] = shogiPieces[pc['piece'].lower()](pc['piece'], self.whichPlayer(pc['piece']), coord, False)
-            else:
-                self.boardPieces[coord] = promotion[pc['piece'][1].lower()](pc['piece'], self.whichPlayer(pc['piece']), coord, True)
+            self.boardPieces[self.getCoordinates(pc['position'])] = \
+            shogiPieces[pc['piece'].lower()](pc['piece'], self.whichPlayer(pc['piece']), self.getCoordinates(pc['position']), len(pc['piece']) == 2)
 
 
     def whichPlayer(self, pieceID):
@@ -176,6 +177,10 @@ class Minishogi(object):
 
 
     def main(self):
+        for pc in self.boardPieces:
+            coord = self.boardPieces[pc].getPosition()
+            self.boardImage[coord[0]][coord[1]] = self.boardPieces[pc].getPieceID()
+
         print(self.currentPlayer + ' player action: ' + self.currentMove)
         print(stringifyBoard(self.boardImage))
         print('Captures UPPER: ' + ' '.join([i.getPieceID() for i in self.capturedPieces[upper]]))
@@ -277,7 +282,11 @@ shogiPieces = {'k':King,
                's':Silver,
                'g':Gold,
                'r':Rook,
-               'b':Bishop}
+               'b':Bishop,
+               '+s':Gold,
+               '+b':dragonHorse,
+               '+r':dragonKing,
+               '+p':Gold}
 
 #promoted pieces and how they move
 #if trying to promote k or g, throw error
