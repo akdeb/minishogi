@@ -4,11 +4,13 @@ import pprint
 from objects import *
 
 # will do this after logic implemented correctly
-def fileMode():
-    path = sys.argv[2]
+def fileMode(path):
+
+    if path is None:
+        path = sys.argv[2]
     #pprint.pprint(retVal)
+
     game = playGame(parseTestCase(path))
-    #print(game)
     return
 
 def playGame(ret):

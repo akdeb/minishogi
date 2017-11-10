@@ -19,6 +19,6 @@ if __name__ == '__main__':
     if flag == '-i':
         intMode()
     elif flag == '-f':
-        fileMode()
+        fileMode(None)
     else:
         print('Please enter a correct flag!')

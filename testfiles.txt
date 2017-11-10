@@ -1,0 +1,293 @@
+1. Test: basicCheck
+Correct: No
+Notes: Write check
+
+
+2. Test: bishopIllegalMove
+Correct: No
+Notes: Implement Bishop moves
+
+
+3. Test: bishopMoves
+Correct: Yes
+Notes: Moves are working well
+
+
+4. Test: bishopPromotion
+Correct: Yes
+Notes: Promotion works well
+
+
+5. Test: blockOutOfCheck
+Correct: Yes
+Notes: Only moves case; implement check
+
+
+6. Test: capture
+Correct: Yes
+Notes: Capture works and moves well
+
+
+7. Test: captureAndPromote
+Correct: Yes
+Notes: Captures and promotes well
+
+
+8. Test: captureDrop
+Correct: No
+Notes: Implement drop piece without dropping on another piece
+
+
+9. Test: captureOutOfCheck
+Correct: Yes
+Notes: But moves need to be right
+
+
+10. Test: drop
+Correct: No
+Notes: Implement drop
+
+
+11. Test: checkmate
+Correct: No
+Notes:
+
+
+12. Test: doubleCheck
+Correct: No
+Notes:
+
+
+13. Test: doublePawnDrop
+Correct: No
+Notes:
+
+
+14. Test: dropEmptyHand
+Correct: No
+Notes:
+
+
+15. Test: dropOpponentsPiece
+Correct: No
+Notes:
+
+
+16. Test: dropOutOfCheck
+Correct: No
+Notes:
+
+
+17. Test: dropWrongPiece
+Correct: No
+Notes:
+
+
+18. Test: forcedPawnPromotion
+Correct: Yes
+Notes: promotion works similar to promoting other pieces
+
+
+19. Test: goldMoves
+Correct:
+Notes:
+
+
+20. Test: goldIllegalMove
+Correct: Yes
+Notes:
+
+
+21. Test: goldPromotion
+Correct: Yes
+Notes: promotion working well
+
+
+22. Test: immediatePawnDropMate
+Correct: No
+Notes: Check check not implemented
+
+
+23. Test: initialMove
+Correct: Yes
+Notes: Initial Move functions
+
+
+24. Test: initialResponse
+Correct: Yes
+Notes: Initial response functions well
+
+
+25. Test: kingIllegalMove
+Correct: No
+Notes: Piece restrictions not implemented yet
+
+
+26. Test: kingMoves
+Correct: Yes
+Notes: King moves when restrictions not applied
+
+
+27. Test: kingPromotion
+Correct: Yes
+Notes: King promotion works well
+
+
+28. Test: loseOnLastMove
+Correct: No
+Notes: Doesn't work because check isn't implemented
+
+
+29. Test: lowerIllegalPromotion
+Correct: Yes
+Notes: Promotion zone case handled
+
+
+30. Test: lowerStuckPawnDrop
+Correct: No
+Notes: Implement drop
+
+
+31. Test: manyWaysOutOfCheck
+Correct: No
+Notes: implement check
+
+
+32. Test: mateWithDrop
+Correct: No
+Notes: implement drop
+
+
+33. Test: moveOutOfCheck
+Correct: Yes
+Notes: But check to be implemented
+
+
+34. Test: movingIntoCheck
+Correct: No
+Notes: not implemented yet
+
+
+35. Test: occupiedDrop
+Correct: No
+Notes: implement drop
+
+
+36. Test: pawnIllegalMove
+Correct: No
+Notes: implement moves for pieces
+
+
+37. Test: pawnPromotion
+Correct: Yes
+Notes: pawn promotion works
+
+
+38. Test: promoteLeavingZone
+Correct: Yes
+Notes: promote leaving zone works fine
+
+
+39. Test: promoteWithinZone
+Correct: Yes
+Notes: promote works
+
+
+40. Test: promotedBishopIllegalMove
+Correct: No
+Notes: Piece move implementation not implemented yet
+
+
+41. Test: promotedBishopMoves
+Correct: Yes
+Notes: Functions well
+
+
+42. Test: promotedCaptureDrop
+Correct: No
+Notes: implement drop
+
+
+43. Test: promotedPawnIllegalMove
+Correct: No
+Notes: gold general move implementation
+
+
+44. Test: promotedPawnMoves
+Correct: Yes
+Notes: implement piece moves
+
+
+45. Test: promotedRookIllegalMove
+Correct: No
+Notes: not implemented rook yet
+
+
+46. Test: promotedRookMoves
+Correct: Yes
+Notes: promote works well
+
+
+47. Test: promotedSilverIllegalMove
+Correct: No
+Notes: yet to implement silver
+
+
+48. Test: promotedSilverMoves
+Correct: Yes
+Notes:
+
+
+49. Test: promotedSilverPromotion
+Correct: Yes
+Notes: promotion works
+
+
+50. Test: rookIllegalMove
+Correct: No
+Notes: to implement rook moves
+
+
+51. Test: rookMoves
+Correct: Yes
+Notes: implement rook move
+
+
+52. Test: rookPromotion
+Correct: Yes
+Notes: promote works
+
+
+53. Test: silverIllegalMove
+Correct: No
+Notes: implement silver move
+
+
+54. Test: silverMoves
+Correct: Yes
+Notes: silver moves well
+
+
+55. Test: silverPromotion
+Correct: Yes
+Notes: promote works
+
+
+56. Test: tieGame
+Correct: Yes
+Notes: game ties
+
+
+57. Test: upperIllegalPromotion
+Correct: Yes
+Notes: promote handles all cases (hopefully)
+
+
+58. Test: upperStuckPawnDrop
+Correct: No
+Notes: implement drop
+
+
+59. Test: winOnLastMove
+Correct: No
+Notes: checkmate doesn't work
