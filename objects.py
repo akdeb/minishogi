@@ -2,20 +2,6 @@ from utils import *
 import pprint
 from copy import *
 
-lower = 'lower'
-upper = 'UPPER'
-
-oppositePlayer = {lower:upper, upper:lower}
-allPossiblePieces = {'p','P',
-                     'k','K',
-                     'g', 'G',
-                     's', 'S',
-                     'b', 'B',
-                     'r', 'R',
-                     '+s', '+S',
-                     '+b', '+B',
-                     '+r', '+R',
-                     '+p', '+P'}
 
 class Minishogi(object):
     def __init__(self, vals):
@@ -26,7 +12,7 @@ class Minishogi(object):
         self.capturedPieces = {lower:[], upper:[]}
 
         self.boardImage = [['' for i in range(5)] for j in range(5)]
-        self.capturedImage = {lower:[], upper:[]}
+        self.capturedImage = {lower:[], upper:[]} #maybe don't need this
 
         self.numberOfMoves = 0
         self.gameOver = False
@@ -48,8 +34,6 @@ class Minishogi(object):
 
 
 
-
-
     def makeMovesArray(self, moves):
         for move in moves:
             sequence = move.split(' ')
@@ -67,6 +51,8 @@ class Minishogi(object):
                     self.applyMove(sequence)
             elif (sequence[0] == 'drop') and (len(sequence) == 3):
                 if not (self.isLegalPosition(sequence[2])):
+                    self.gameOverExiting(1)
+                elif not (len(sequence[1]) == 1 and (sequence[1] in pieceTypes)):
                     self.gameOverExiting(1)
                 else:
                     self.applyDrop(sequence)
@@ -138,14 +124,11 @@ class Minishogi(object):
         #first move a piece and then promote
         #FIXME maybe create a function for isPromotionZone()
         if len(move) == 4 or (self.boardPieces[end].getPieceID().lower() == 'p' and (start[1] == promotionZone[self.currentPlayer] or end[1] == promotionZone[self.currentPlayer])):
-            self.applyPromote(start, end)
-
-
-    def forcePawnPromotion(self, start, end):
-        pass
+            self.applyPromote(end)
 
 
 
+    #change letter case according to current player
     def correctCase(self, piece):
         return piece.lower() if self.currentPlayer==lower else piece.upper()
 
@@ -161,12 +144,48 @@ class Minishogi(object):
 
 
     def applyDrop(self, move):
-        pass
+        place = self.getCoordinates(move[2])
+        dropPiece =  self.correctCase(move[1])
+
+        #check if no piece exists at the drop spot
+        if place in self.boardPieces:
+            self.gameOverExiting(1)
+            return
+
+        #check if piece exists
+        found = False
+        for pc in self.capturedPieces[self.currentPlayer]:
+            if dropPiece == pc.getPieceID():
+                found = True
+                break
+        if found is False:
+            self.gameOverExiting(1)
+            return
+
+        if dropPiece.lower() == 'p':
+            pawnSet = [dropPiece, '+' + dropPiece]
+            # same column pawn?
+            for pc in self.boardPieces:
+                if (self.boardPieces[pc].getPieceID() in pawnSet) and (self.boardPieces[pc].getPosition()[0] == place[0]):
+                    self.gameOverExiting(1)
+                    return
+            #dropping to promotion zone
+            if place[1] == promotionZone[self.currentPlayer]:
+                self.gameOverExiting(1)
+                return
+
+        # drop the piece now
+        for pc in self.capturedPieces[self.currentPlayer]:
+            if pc.getPieceID() == dropPiece:
+                self.boardPieces[place] = shogiPieces[dropPiece.lower()](dropPiece, self.currentPlayer, place, False)
+                self.capturedPieces[self.currentPlayer].remove(pc)
+                break
+
+        return
 
 
 
-
-    def applyPromote(self, start, end):
+    def applyPromote(self, end):
         newPieceID = '+' + self.boardPieces[end].getPieceID()
         self.boardPieces[end].setPieceID = newPieceID
         self.boardPieces[end].setIsPromoted = True
@@ -181,14 +200,14 @@ class Minishogi(object):
     #now check if within board
     def isLegalPosition(self, position):
         if len(position) != 2:
-            return 0
+            return False
         return self.isWithinBoard(position)
 
 
     def isWithinBoard(self, position):
         if not ('a' <= position[0] <= 'e' and '1' <= position[1] <= '5'):
-            return 0
-        return 1
+            return False
+        return True
 
     #case 1: '<opposite> player wins. Illegal Move.'
     #case 2: '<current> player wins. Checkmate.'
@@ -203,6 +222,8 @@ class Minishogi(object):
             self.outMessage = 'Tie game.  Too many moves.'
         else:
             self.outMessage = oppositePlayer[self.currentPlayer] + '> '
+
+
 
     def placeAllPieces(self, piecesOnBoard, lowerCaptures, upperCaptures):
         for pc in lowerCaptures:
@@ -340,12 +361,24 @@ shogiPieces = {'k':King,
                '+r':dragonKing,
                '+p':Gold}
 
+lower = 'lower'
+upper = 'UPPER'
+
+oppositePlayer = {lower:upper, upper:lower}
+allPossiblePieces = {'p','P',
+                     'k','K',
+                     'g', 'G',
+                     's', 'S',
+                     'b', 'B',
+                     'r', 'R',
+                     '+s', '+S',
+                     '+b', '+B',
+                     '+r', '+R',
+                     '+p', '+P'}
+
 promotionZone = {lower:4, upper:0}
 unpromotablePieces = {'k','g', 'K', 'G'}
+setOfPawns = {lower:['p','+p'],upper:['P','+P']}
 
-#promoted pieces and how they move
-#if trying to promote k or g, throw error
-promotion = {'s':Gold,
-             'b':dragonHorse,
-             'r':dragonKing,
-             'p':Gold}
+#the type of pieces
+pieceTypes = {'s','b','r','p','k','g'}

@@ -34,8 +34,8 @@ Notes: Captures and promotes well
 
 
 8. Test: captureDrop
-Correct: No
-Notes: Implement drop piece without dropping on another piece
+Correct: Yes
+Notes: 'seems to work fine'
 
 
 9. Test: captureOutOfCheck
@@ -44,8 +44,8 @@ Notes: But moves need to be right
 
 
 10. Test: drop
-Correct: No
-Notes: Implement drop
+Correct: Yes
+Notes: Maybe error gone?
 
 
 11. Test: checkmate
@@ -59,28 +59,28 @@ Notes:
 
 
 13. Test: doublePawnDrop
-Correct: No
-Notes:
+Correct: Yes
+Notes: seems to work fine. looks solid
 
 
 14. Test: dropEmptyHand
-Correct: No
-Notes:
+Correct: Yes
+Notes: works
 
 
 15. Test: dropOpponentsPiece
-Correct: No
-Notes:
+Correct: Yes
+Notes: works fine
 
 
 16. Test: dropOutOfCheck
-Correct: No
-Notes:
+Correct: Yes
+Notes: works well now
 
 
 17. Test: dropWrongPiece
-Correct: No
-Notes:
+Correct: Yes
+Notes: doesn't drop this piece
 
 
 18. Test: forcedPawnPromotion
@@ -89,13 +89,13 @@ Notes: promotion works similar to promoting other pieces
 
 
 19. Test: goldMoves
-Correct:
-Notes:
+Correct: Yes
+Notes: To implement Gold moves
 
 
 20. Test: goldIllegalMove
-Correct: Yes
-Notes:
+Correct: No
+Notes: doesn't work until gold works
 
 
 21. Test: goldPromotion
@@ -135,7 +135,7 @@ Notes: King promotion works well
 
 28. Test: loseOnLastMove
 Correct: No
-Notes: Doesn't work because check isn't implemented
+Notes: Doesn't work because check isn't implemented (cannot capture king)
 
 
 29. Test: lowerIllegalPromotion
@@ -144,8 +144,8 @@ Notes: Promotion zone case handled
 
 
 30. Test: lowerStuckPawnDrop
-Correct: No
-Notes: Implement drop
+Correct: Yes
+Notes: detects promotion zone drop
 
 
 31. Test: manyWaysOutOfCheck
@@ -155,7 +155,7 @@ Notes: implement check
 
 32. Test: mateWithDrop
 Correct: No
-Notes: implement drop
+Notes: implement drop and checkmate
 
 
 33. Test: moveOutOfCheck
@@ -165,12 +165,12 @@ Notes: But check to be implemented
 
 34. Test: movingIntoCheck
 Correct: No
-Notes: not implemented yet
+Notes: not implemented yet (make sure dumb moves not allowed)
 
 
 35. Test: occupiedDrop
-Correct: No
-Notes: implement drop
+Correct: Yes
+Notes: dropping where it exists taken care of
 
 
 36. Test: pawnIllegalMove
@@ -204,8 +204,8 @@ Notes: Functions well
 
 
 42. Test: promotedCaptureDrop
-Correct: No
-Notes: implement drop
+Correct: Yes
+Notes: seems to work fine
 
 
 43. Test: promotedPawnIllegalMove
@@ -284,7 +284,7 @@ Notes: promote handles all cases (hopefully)
 
 
 58. Test: upperStuckPawnDrop
-Correct: No
+Correct: Yes - lower stuck and upper stuck both work
 Notes: implement drop
 
 
