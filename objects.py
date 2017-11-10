@@ -2,11 +2,11 @@ from utils import *
 import pprint
 from copy import *
 
-
 class Minishogi(object):
     def __init__(self, vals):
         self.currentPlayer = lower
         self.currentMove = ''
+        self.gameInCheck = False
 
         self.boardPieces = {}   #dict of objects
         self.capturedPieces = {lower:[], upper:[]}
@@ -17,6 +17,7 @@ class Minishogi(object):
         self.numberOfMoves = 0
         self.gameOver = False
         self.outMessage = ''
+        self.waysOutofCheck = []
 
         # naturally, you'd want your pieces to be existing and
         # then you'd want to act on your set of moves
@@ -33,21 +34,46 @@ class Minishogi(object):
         pprint.pprint(self.boardPieces)
 
 
+    def possibleMovesOutOfCheck(self, player):
+        possibleMoves = ['1']
+        #check possible piece movements and check for a check
+        #check for drops and check for check
+        return possibleMoves
+
+
+    def isInCheck(self):
+        return False
+
 
     def makeMovesArray(self, moves):
         for move in moves:
             sequence = move.split(' ')
             self.currentMove = move
+            del self.waysOutofCheck[:]
+            self.gameInCheck = False
+
+            #check if there is a check on current player
+            if self.isInCheck():
+                possibleMoves = self.possibleMovesOutOfCheck(self.currentPlayer)
+                if len(possibleMoves) == 0:
+                    self.gameOverExiting(2)
+                    break
+                self.gameInCheck = True
+                if move not in possibleMoves:
+                    self.gameOverExiting(1)
+                    break
+
             # case1: move <pos1> <pos2> (promote)
             # case2: drop <piece> <pos>
             # case3: anything else
+
             if (sequence[0] == 'move') and (len(sequence) == 3 or len(sequence) == 4):
                 if not (self.isLegalPosition(sequence[1]) and self.isLegalPosition(sequence[2])):
                     self.gameOverExiting(1)
                 elif len(sequence) == 4 and sequence[3] != 'promote':
                         self.gameOverExiting(1)
                 else:
-                    #self.display()
+                    # APPLY MOVE HERE
                     self.applyMove(sequence)
             elif (sequence[0] == 'drop') and (len(sequence) == 3):
                 if not (self.isLegalPosition(sequence[2])):
@@ -55,24 +81,30 @@ class Minishogi(object):
                 elif not (len(sequence[1]) == 1 and (sequence[1] in pieceTypes)):
                     self.gameOverExiting(1)
                 else:
+                    # APPLY DROP HERE
                     self.applyDrop(sequence)
             else:
                 self.gameOverExiting(1)
 
+            #check if next player is in checkMate state
+            if len(self.possibleMovesOutOfCheck(oppositePlayer[self.currentPlayer])) == 0:
+                self.gameOverExiting(2)
+
+            #if the game is over, break
             if self.gameOver:
                 break
 
-            #FIXME XXX try to fix the currentPlayer repitition problem
+            #FIXME try to fix the currentPlayer repitition problem
             self.currentPlayer = oppositePlayer[self.currentPlayer]
             self.numberOfMoves+=1
 
-            #XXX
+            #FIXME
             if self.numberOfMoves == 400:
                 self.currentPlayer = oppositePlayer[self.currentPlayer]
                 self.gameOverExiting(3)
                 break
 
-        #XXX
+        #FIXME
         if not self.gameOver:
             self.currentPlayer = oppositePlayer[self.currentPlayer]
             self.gameOverExiting(200)
@@ -154,6 +186,12 @@ class Minishogi(object):
 
         #check if piece exists
         found = False
+        if not any(pc.getPieceID() == dropPiece for pc in self.capturedPieces[self.currentPlayer]):
+            self.gameOverExiting(1)
+            return
+
+        '''
+
         for pc in self.capturedPieces[self.currentPlayer]:
             if dropPiece == pc.getPieceID():
                 found = True
@@ -161,26 +199,36 @@ class Minishogi(object):
         if found is False:
             self.gameOverExiting(1)
             return
+        '''
 
         if dropPiece.lower() == 'p':
             pawnSet = [dropPiece, '+' + dropPiece]
             # same column pawn?
+            if any((self.boardPieces[pc].getPieceID() in pawnSet) and (self.boardPieces[pc].getPosition()[0] == place[0]) for pc in self.boardPieces):
+                self.gameOverExiting(1)
+                return
+            '''
             for pc in self.boardPieces:
                 if (self.boardPieces[pc].getPieceID() in pawnSet) and (self.boardPieces[pc].getPosition()[0] == place[0]):
                     self.gameOverExiting(1)
                     return
+            '''
             #dropping to promotion zone
             if place[1] == promotionZone[self.currentPlayer]:
                 self.gameOverExiting(1)
                 return
+        '''
+        obj = (pc.getPieceID() == dropPiece for pc in self.capturedPieces[self.currentPlayer]).next()
+        if not obj:
+            self.capturedPieces[self.currentPlayer].remove(pc)
 
+        '''
         # drop the piece now
         for pc in self.capturedPieces[self.currentPlayer]:
             if pc.getPieceID() == dropPiece:
                 self.boardPieces[place] = shogiPieces[dropPiece.lower()](dropPiece, self.currentPlayer, place, False)
                 self.capturedPieces[self.currentPlayer].remove(pc)
                 break
-
         return
 
 
@@ -195,6 +243,8 @@ class Minishogi(object):
 
 
 
+    def isInCheck(self):
+        return
 
     #check if sensible position
     #now check if within board
@@ -258,6 +308,11 @@ class Minishogi(object):
         print(stringifyBoard(self.boardImage))
         print('Captures UPPER: ' + ' '.join([i.getPieceID() for i in self.capturedPieces[upper]]))
         print('Captures lower: ' + ' '.join([i.getPieceID() for i in self.capturedPieces[lower]]))
+        if self.gameInCheck:
+            print('\n' + self.currentPlayer + ' player is in check!')
+            print('Available moves:')
+            for possibleMove in self.waysOutofCheck:
+                print(possibleMove)
         print('\n' + self.outMessage)
 
     # JUST FOR DEBUGGING
