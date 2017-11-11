@@ -94,8 +94,8 @@ Notes: To implement Gold moves
 
 
 20. Test: goldIllegalMove
-Correct: No
-Notes: doesn't work until gold works
+Correct: Yes
+Notes: gold works well now
 
 
 21. Test: goldPromotion
@@ -119,8 +119,8 @@ Notes: Initial response functions well
 
 
 25. Test: kingIllegalMove
-Correct: No
-Notes: Piece restrictions not implemented yet
+Correct: Yes
+Notes: King moves well now
 
 
 26. Test: kingMoves
@@ -134,8 +134,8 @@ Notes: King promotion works well
 
 
 28. Test: loseOnLastMove
-Correct: No
-Notes: Doesn't work because check isn't implemented (cannot capture king)
+Correct: Yes
+Notes: Somehow works because pieces move well
 
 
 29. Test: lowerIllegalPromotion
@@ -174,8 +174,8 @@ Notes: dropping where it exists taken care of
 
 
 36. Test: pawnIllegalMove
-Correct: No
-Notes: implement moves for pieces
+Correct: Yes
+Notes: Pawn seems to move well
 
 
 37. Test: pawnPromotion
@@ -194,8 +194,8 @@ Notes: promote works
 
 
 40. Test: promotedBishopIllegalMove
-Correct: No
-Notes: Piece move implementation not implemented yet
+Correct: Yes
+Notes: promoted Bishop moves like dragonHorse
 
 
 41. Test: promotedBishopMoves
@@ -209,8 +209,8 @@ Notes: seems to work fine
 
 
 43. Test: promotedPawnIllegalMove
-Correct: No
-Notes: gold general move implementation
+Correct: Yes
+Notes: Promoted pawn moves like gold general
 
 
 44. Test: promotedPawnMoves
@@ -219,8 +219,8 @@ Notes: implement piece moves
 
 
 45. Test: promotedRookIllegalMove
-Correct: No
-Notes: not implemented rook yet
+Correct: Yes
+Notes: Promoted rook moves like dragon King
 
 
 46. Test: promotedRookMoves
@@ -229,13 +229,13 @@ Notes: promote works well
 
 
 47. Test: promotedSilverIllegalMove
-Correct: No
-Notes: yet to implement silver
+Correct: Yes
+Notes: Promoted Silver moves like G general
 
 
 48. Test: promotedSilverMoves
 Correct: Yes
-Notes:
+Notes: moves well
 
 
 49. Test: promotedSilverPromotion
@@ -244,8 +244,8 @@ Notes: promotion works
 
 
 50. Test: rookIllegalMove
-Correct: No
-Notes: to implement rook moves
+Correct: Yes
+Notes: Rook moves well
 
 
 51. Test: rookMoves
@@ -259,8 +259,8 @@ Notes: promote works
 
 
 53. Test: silverIllegalMove
-Correct: No
-Notes: implement silver move
+Correct: Yes
+Notes: Silver moves well
 
 
 54. Test: silverMoves

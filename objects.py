@@ -12,7 +12,6 @@ class Minishogi(object):
         self.capturedPieces = {lower:[], upper:[]}
 
         self.boardImage = [['' for i in range(5)] for j in range(5)]
-        self.capturedImage = {lower:[], upper:[]} #maybe don't need this
 
         self.numberOfMoves = 0
         self.gameOver = False
@@ -42,8 +41,26 @@ class Minishogi(object):
 
 
     def isInCheck(self):
+        kingPieces = {}
+        pieceColors = {upper:[], lower:[]}
+        for position in self.boardPieces:
+            if self.boardPieces[position].getPieceID() in uncapturablePieces:
+                kingPieces[self.boardPieces[position].getPlayer()] = self.boardPieces[position]
+            pieceColors[self.boardPieces[position].getPlayer()].append(self.boardPieces[position])
+        if self.isKingExposed(kingPieces[self.currentPlayer], pieceColors[self.oppositePlayer(self.currentPlayer)]):
+            return True
         return False
 
+
+    def isKingExposed(self, kingPosition, allOtherPieces):
+        for position in allOtherPieces:
+            if allOtherPieces[position].isMovePossibleDispatcher(position, kingPosition.getPosition(), self.boardPieces):
+                return True
+        return False
+
+
+    def isThisCheckmate(self):
+        return ['1']
 
     def makeMovesArray(self, moves):
         for move in moves:
@@ -53,8 +70,12 @@ class Minishogi(object):
             self.gameInCheck = False
 
             #check if there is a check on current player
+            '''
             if self.isInCheck():
-                possibleMoves = self.possibleMovesOutOfCheck(self.currentPlayer)
+                if self.isThisCheckmate():
+                    self.gameOverExiting(2)
+                    break
+                possibleMoves = self.isThisCheckmate()
                 if len(possibleMoves) == 0:
                     self.gameOverExiting(2)
                     break
@@ -62,7 +83,7 @@ class Minishogi(object):
                 if move not in possibleMoves:
                     self.gameOverExiting(1)
                     break
-
+            '''
             # case1: move <pos1> <pos2> (promote)
             # case2: drop <piece> <pos>
             # case3: anything else
@@ -245,11 +266,6 @@ class Minishogi(object):
         self.boardPieces[end] = newPiece
 
 
-
-    def isInCheck(self):
-        return False
-        pass
-
     #check if sensible position
     #now check if within board
     def isLegalPosition(self, position):
@@ -325,6 +341,9 @@ class Minishogi(object):
 
     def __str__(self):
         return 'This is minishogi'
+
+
+
 
 
 class Piece:
