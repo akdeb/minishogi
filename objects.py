@@ -140,6 +140,12 @@ class Minishogi(object):
         if self.boardPieces[start].getPlayer() != self.currentPlayer:
             self.gameOverExiting(1)
             return
+
+        originalBoard = deepcopy(self.boardPieces)
+        if not self.boardPieces[start].isMovePossibleDispatcher(start, end, originalBoard):
+            self.gameOverExiting(1)
+            return
+
         #capture and capturing own piece
         if end in self.boardPieces:
             if self.boardPieces[end].getPlayer() == self.currentPlayer:
@@ -163,8 +169,6 @@ class Minishogi(object):
     #change letter case according to current player
     def correctCase(self, piece):
         return piece.lower() if self.currentPlayer==lower else piece.upper()
-
-
 
 
     def applyCapture(self, start, end):
@@ -202,7 +206,6 @@ class Minishogi(object):
         '''
 
         if dropPiece.lower() == 'p':
-            #pawnSet = [dropPiece, '+' + dropPiece]
             # same column pawn?
             if any((self.boardPieces[pc].getPieceID() == dropPiece) and (self.boardPieces[pc].getPosition()[0] == place[0]) for pc in self.boardPieces):
                 self.gameOverExiting(1)
@@ -331,24 +334,50 @@ class Piece:
         self.position = position
         self.isPromoted = isPromoted
 
-
     '''
     It is recommended that you check these funtions and change their implementation
     '''
-    def isInBounds(self, currentBoard, currentPlayer, position, isPromoted):
+    def isMovePossibleDispatcher(self, start, end, currentBoard):
+        if end in self.derivedPieceMove(start, currentBoard):
+            return True
+        return False
+
+    def stillInsideBoard(self, position):
         #'''checks if prospective piece position is on board'''
+        x,y = position
         if x>=0 and x<5 and y>=0 and y<5:
             return True
         return False
 
-    def noPossibleConflict(self, piece):
+    def noPossibleConflict(self, position, currentBoard):
         #''' is there a conflict (without thinking of check) if there is a piece here'''
-        if self.isInBounds(x,y) and ((x,y) not in self.boardPieces or (self.boardPieces[(x,y)].getPlayer() != self.currentPlayer)):
+        if self.stillInsideBoard(position) and (position not in currentBoard or (currentBoard[position].getPlayer() != self.getPlayer())):
             return True
         return False
 
-    def moveRepeatedly(self, currentBoard, currentPlayer, position, isPromoted):
-        pass
+    def performMovesIter(self,position,currentBoard,pieceMoves):
+        possibleMove = []
+        pc_x, pc_y = position
+        for xi,yi in pieceMoves:
+            x,y = pc_x+xi, pc_y+yi
+            while self.stillInsideBoard((x,y)):
+                pieceAtXY = currentBoard.get((x,y),None)
+                if pieceAtXY is None: possibleMove.append((x, y))
+                elif pieceAtXY.getPlayer() != self.getPlayer() and pieceAtXY.getPieceID() not in uncapturablePieces:
+                    possibleMove.append((x,y))
+                    break
+                else:
+                    break
+                x,y = x+xi, y+yi
+        return possibleMove
+
+    # the gold general and silver general and pawn are unsymmetric
+    def handleUnsymmetricPieces(self, val1, val2):
+        return val1+val2 if self.getPlayer() == lower else val1-val2
+
+
+    def derivedPieceMove(self,position, currentBoard):
+        print('Should use dervied class class moves!')
 
     def getPieceID(self):
         return self.pieceID
@@ -380,45 +409,47 @@ class Piece:
     def __str__(self):
         return self.pieceID + ', ' +  self.player +  ', ' + str(self.position) +  ', ' +  str(self.isPromoted)
 
-    def performMoves(self,x,y,board,PieceID,possibleMoves):
-        pass
-
-    def derivedPieceMove(self,x,y,pieceID,player,promoted,board):
-        print('Should use dervied class class moves!')
 
 #classes inheriting from Piece
 #virtual function derivedPieceMove calls performMoves
 class Pawn(Piece):
-    def derivedPieceMove(self,x,y,pieceID,player,isPromoted,board):
+    def derivedPieceMove(self,position, currentBoard):
+        x,y=position
+        return [(self.handleUnsymmetricPieces(x,i), self.handleUnsymmetricPieces(y,j)) for (i,j) in upsq if self.noPossibleConflict((self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)), currentBoard)]
         pass
 
 class King(Piece):
-    def derivedPieceMove(self,x,y,pieceID,player,isPromoted,board):
-        pass
+    def derivedPieceMove(self,position, currentBoard):
+        x,y=position
+        return [(x+i, y+j) for (i,j) in udlr + topdiag + botdiag if self.noPossibleConflict((x+i, y+j), currentBoard)]
 
 class Gold(Piece):
-    def derivedPieceMove(self,x,y,pieceID,player,isPromoted,board):
-        pass
+    def derivedPieceMove(self,position, currentBoard):
+        x,y = position
+        return [(self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)) for (i,j) in udlr + topdiag if self.noPossibleConflict((self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)), currentBoard)]
 
 class Silver(Piece):
-    def derivedPieceMove(self,x,y,pieceID,player,isPromoted,board):
-        pass
+    def derivedPieceMove(self,position, currentBoard):
+        x,y = position
+        return [(self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)) for (i,j) in topdiag + botdiag + upsq if self.noPossibleConflict((self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)), currentBoard)]
 
 class Rook(Piece):
-    def derivedPieceMove(self,x,y,pieceID,player,isPromoted,board):
-        pass
+    def derivedPieceMove(self,position, currentBoard):
+        return self.performMovesIter(position, currentBoard, udlr)
 
 class Bishop(Piece):
-    def derivedPieceMove(self,x,y,pieceID,player,isPromoted,board):
-        pass
+    def derivedPieceMove(self,position, currentBoard):
+        return self.performMovesIter(position, currentBoard, topdiag+botdiag)
 
 class dragonHorse(Piece):
-    def derivedPieceMove(self,x,y,pieceID,player,isPromoted,board):
-        pass
+    def derivedPieceMove(self,position, currentBoard):
+        x,y = position
+        return [(x+i, y+j) for (i,j) in udlr + topdiag + botdiag if self.noPossibleConflict((x+i, y+j), currentBoard)] + self.performMovesIter(position, currentBoard, topdiag+botdiag)
 
 class dragonKing(Piece):
-    def derivedPieceMove(self,x,y,pieceID,player,isPromoted,board):
-        pass
+    def derivedPieceMove(self,position, currentBoard):
+        x,y = position
+        return [(x+i, y+j) for (i,j) in udlr + topdiag + botdiag if self.noPossibleConflict((x+i, y+j), currentBoard)] + self.performMovesIter(position, currentBoard, udlr)
 
 #define piece movements
 udlr = [(0,1), (1,0), (0,-1), (-1,0)]
@@ -445,7 +476,7 @@ lower = 'lower'
 upper = 'UPPER'
 
 oppositePlayer = {lower:upper, upper:lower}
-allPossiblePieces = {'p','P',
+allPossiblePieces = ['p','P',
                      'k','K',
                      'g', 'G',
                      's', 'S',
@@ -454,11 +485,12 @@ allPossiblePieces = {'p','P',
                      '+s', '+S',
                      '+b', '+B',
                      '+r', '+R',
-                     '+p', '+P'}
+                     '+p', '+P']
 
 promotionZone = {lower:4, upper:0}
-unpromotablePieces = {'k','g', 'K', 'G'}
+uncapturablePieces = ['k', 'K']
+unpromotablePieces = ['k','g', 'K', 'G']
 setOfPawns = {lower:['p','+p'],upper:['P','+P']}
 
 #the type of pieces
-pieceTypes = {'s','b','r','p','k','g'}
+pieceTypes = ['s','b','r','p','k','g']

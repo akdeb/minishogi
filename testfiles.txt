@@ -4,8 +4,8 @@ Notes: Write check
 
 
 2. Test: bishopIllegalMove
-Correct: No
-Notes: Implement Bishop moves
+Correct: Yes
+Notes: Works now
 
 
 3. Test: bishopMoves
