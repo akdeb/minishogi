@@ -202,9 +202,9 @@ class Minishogi(object):
         '''
 
         if dropPiece.lower() == 'p':
-            pawnSet = [dropPiece, '+' + dropPiece]
+            #pawnSet = [dropPiece, '+' + dropPiece]
             # same column pawn?
-            if any((self.boardPieces[pc].getPieceID() in pawnSet) and (self.boardPieces[pc].getPosition()[0] == place[0]) for pc in self.boardPieces):
+            if any((self.boardPieces[pc].getPieceID() == dropPiece) and (self.boardPieces[pc].getPosition()[0] == place[0]) for pc in self.boardPieces):
                 self.gameOverExiting(1)
                 return
             '''
@@ -244,7 +244,8 @@ class Minishogi(object):
 
 
     def isInCheck(self):
-        return
+        return False
+        pass
 
     #check if sensible position
     #now check if within board
@@ -298,7 +299,6 @@ class Minishogi(object):
     def getCoordinates(self, position):
         return (ord(position[0])-97, int(position[1])-1)
 
-
     def main(self):
         for pc in self.boardPieces:
             coord = self.boardPieces[pc].getPosition()
@@ -330,6 +330,25 @@ class Piece:
         self.player = player
         self.position = position
         self.isPromoted = isPromoted
+
+
+    '''
+    It is recommended that you check these funtions and change their implementation
+    '''
+    def isInBounds(self, currentBoard, currentPlayer, position, isPromoted):
+        #'''checks if prospective piece position is on board'''
+        if x>=0 and x<5 and y>=0 and y<5:
+            return True
+        return False
+
+    def noPossibleConflict(self, piece):
+        #''' is there a conflict (without thinking of check) if there is a piece here'''
+        if self.isInBounds(x,y) and ((x,y) not in self.boardPieces or (self.boardPieces[(x,y)].getPlayer() != self.currentPlayer)):
+            return True
+        return False
+
+    def moveRepeatedly(self, currentBoard, currentPlayer, position, isPromoted):
+        pass
 
     def getPieceID(self):
         return self.pieceID
@@ -400,6 +419,12 @@ class dragonHorse(Piece):
 class dragonKing(Piece):
     def derivedPieceMove(self,x,y,pieceID,player,isPromoted,board):
         pass
+
+#define piece movements
+udlr = [(0,1), (1,0), (0,-1), (-1,0)]
+topdiag = [(1,1), (-1,1)]
+botdiag = [(-1,-1), (1,-1)]
+upsq = [(0,1)]
 
 #these are all possible pieces
 #for promoted pieces. see the plus
