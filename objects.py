@@ -40,9 +40,9 @@ class Minishogi(object):
         return possibleMoves
 
 
-    def isKingExposed(self, kingPosition, allOtherPieces, playerWho):
+    def isKingExposed(self, king, allOtherPieces, playerWho):
         for piece in allOtherPieces:
-            if piece.isMovePossibleDispatcher(piece.getPosition(), kingPosition.getPosition(), self.boardPieces, playerWho):
+            if piece.isMovePossibleDispatcher(piece.getPosition(), king.getPosition(), self.boardPieces, playerWho):
                 return True
         return False
 
@@ -61,31 +61,66 @@ class Minishogi(object):
         return False
 
 
-    def convertBackToBoardCnfig(sel, position):
-        x,y = pos
+    def convertBackToBoardConfig(sel, position):
+        x,y = position
         return str(chr(97+x)) + str(y+1)
 
     def isThisCheckmate(self, thePlayerInCheck):
         storeBoard = deepcopy(self.boardPieces)
         storeCaptures = deepcopy(self.capturedPieces)
-        storeExitValue = deepcopy(self.gameOverExiting)
-
+        storeOutMessage = deepcopy(self.outMessage)
+        gameOver = deepcopy(self.gameOver)
 
         finalPossibleMoves = []
         ourPiecesToMove = {}
-        otherPlayerPieces = {}
-        ourKing = any(self.boardPieces[pc].getPieceID() == self.correctCase('k', thePlayerInCheck) for pc in self.boardPieces)
+        otherPlayerPieces = []
+        ourKing = None
         for position in self.boardPieces:
             player = self.boardPieces[position].getPlayer()
+            if ourKing == None and self.boardPieces[position].getPieceID() == self.correctCase('k',thePlayerInCheck):
+                ourKing = self.boardPieces[position]
             if player == thePlayerInCheck:
                 ourPiecesToMove[position] = self.boardPieces[position]
             else:
-                otherPlayerPieces[position] = self.boardPieces[position]
-        for ourEveryPiecePosition in ourPiecesToMove:
-            possibleEndPositionsForPiece = ourPiecesToMove[ourEveryPiecePosition].derivedPieceMove(ourEveryPiecePosition, self.boardPieces, thePlayerInCheck)
-            for everyEnding in possibleEndPositionsForPiece:
-                self.gameOverExiting = 
-        return True
+                otherPlayerPieces.append(self.boardPieces[position])
+        # for pc in ourPiecesToMove:
+        #     print(ourPiecesToMove[pc])
+
+        for start in ourPiecesToMove:
+            possibleEndPositionsForPiece = ourPiecesToMove[start].derivedPieceMove(start, self.boardPieces, thePlayerInCheck)
+            for end in possibleEndPositionsForPiece:
+                #restore these values with a deepcopy
+                move = 'move ' + self.convertBackToBoardConfig(start) + ' ' + self.convertBackToBoardConfig(end)
+                #print(move)
+                self.applyMove(move.split(' '))
+                if (not self.isKingExposed(ourKing, otherPlayerPieces, oppositePlayer[thePlayerInCheck])) and self.gameOver == False:
+                    finalPossibleMoves.append(move)
+
+                self.boardPieces = deepcopy(storeBoard)
+                self.capturedPieces = deepcopy(storeCaptures)
+                self.storeOutMessage = deepcopy(storeOutMessage)
+                self.gameOver = deepcopy(gameOver)
+
+        for piece in self.capturedPieces[thePlayerInCheck]:
+            for x in range(5):
+                for y in range(5):
+                    move = 'drop ' + piece.getPieceID().lower() + ' ' + self.convertBackToBoardConfig((x,y))
+                    #print(move + str(self.numberOfMoves))
+                    self.applyDrop(move.split(' '))
+                    #print(ourKing)
+                    #print(str(self.isKingExposed(ourKing, otherPlayerPieces, oppositePlayer[thePlayerInCheck])))
+                    if (not self.isKingExposed(ourKing, otherPlayerPieces, oppositePlayer[thePlayerInCheck])) and self.gameOver == False:
+                        finalPossibleMoves.append(move)
+
+                    self.boardPieces = deepcopy(storeBoard)
+                    self.capturedPieces = deepcopy(storeCaptures)
+                    self.storeOutMessage = deepcopy(storeOutMessage)
+                    self.gameOver = deepcopy(gameOver)
+
+        if len(finalPossibleMoves) == 0:
+            return False
+        self.waysOutofCheck = finalPossibleMoves
+        return False
 
     def makeMovesArray(self, moves):
         for move in moves:
@@ -121,38 +156,25 @@ class Minishogi(object):
             #two such cases:
             #moving into a check
             #dropping pawn for mate
-            if self.isInCheck(self.currentPlayer) or (self.isThisCheckmate(oppositePlayer[self.currentPlayer]) and move[0] == 'drop' and move[1] == 'p'):
+            if self.isInCheck(self.currentPlayer):
                 self.boardPieces = previousState
                 self.capturedPieces = previousCaptures
                 self.gameOverExiting(1)
+            elif move[0] == 'drop' and move[1] == 'p':
+                if self.isThisCheckmate(oppositePlayer[self.currentPlayer]):
+                    self.boardPieces = previousState
+                    self.capturedPieces = previousCaptures
+                    self.gameOverExiting(1)
             else:
                 #print('printing?')
                 self.gameInCheck = False
             #print('nonlmao' + str(self.numberOfMoves))
             if self.isInCheck(oppositePlayer[self.currentPlayer]):
                 #print('lmao' + str(self.numberOfMoves))
-                if isThisCheckmate(oppositePlayer[self.currentPlayer]):
+                if self.isThisCheckmate(oppositePlayer[self.currentPlayer]):
                     self.gameInCheck = False
                     self.gameOverExiting(2)
                 self.gameInCheck = True
-            #print(str(self.gameInCheck))
-
-            #check if there is a check on current player
-            #if self.isInCheck(self.currentPlayer):
-                # if self.isThisCheckmate():
-                #     self.gameOverExiting(2)
-                #     break
-                # possibleMoves = self.isThisCheckmate()
-                # if len(possibleMoves) == 0:
-                #     self.gameOverExiting(2)
-                #     break
-                #self.gameInCheck = True
-                # if move not in possibleMoves:
-                #     self.gameOverExiting(1)
-                #     break
-            #check if next player is in checkMate state
-            # if len(self.possibleMovesOutOfCheck(oppositePlayer[self.currentPlayer])) == 0:
-            #     self.gameOverExiting(2)
 
             #if the game is over, break
             if self.gameOver:
