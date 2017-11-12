@@ -70,7 +70,7 @@ def notSamePlayer(x1,y1,x2,y2,gameBoard):
 	return True
 
 def king_moves(curr_pos, gameBoard):
-	
+
 	valid_moves = []
 	x = curr_pos[0]
 	y = curr_pos[1]
@@ -114,7 +114,7 @@ def rook_moves(curr_pos, gameBoard):
 					break
 			else:
 				valid_moves.append((x2,y2))
-	
+
 	for i in range(1,5):
 		x2 = x1 + i
 		y2 = y1
@@ -238,7 +238,7 @@ def gold_general_moves(curr_pos, gameBoard):
 	y = curr_pos[1]
 
 	if gameBoard[x][y].piece_type.islower():
-		
+
 		x2 = x-1
 		y2 = y+1
 		if (0 <= x2 < N) and (0 <= y2 < N) and notSamePlayer(x,y,x2,y2,gameBoard):
@@ -300,7 +300,7 @@ def silver_general_moves(curr_pos, gameBoard):
 	y = curr_pos[1]
 
 	if gameBoard[x][y].piece_type.islower():
-		
+
 		x2 = x-1
 		y2 = y+1
 		if (0 <= x2 < N) and (0 <= y2 < N) and notSamePlayer(x,y,x2,y2,gameBoard):
@@ -405,7 +405,7 @@ def init_gameBoard(gameBoard):
 	gameBoard[4][0] = Piece('r', (4,0))
 
 def init_gameBoard_partial(gameBoard, init_pieces):
-	
+
 	global k_position
 	global K_position
 
@@ -443,7 +443,7 @@ def create_lower_captured(lower_captured, input_lc):
 
 
 def move(gameBoard, move_played, lowers_turn, promote = False):
-	
+
 	global K_position
 	global k_position
 
@@ -492,7 +492,7 @@ def move(gameBoard, move_played, lowers_turn, promote = False):
 	return 1
 
 def find_k(gameBoard):
-	
+
 	global k_position
 	return k_position
 
@@ -571,7 +571,7 @@ def checkDetection(gameBoard, lowers_turn):
 	return True
 
 def getOutOfCheckMoves(gameBoard, lowers_turn):
-	
+
 	if lowers_turn:
 		my_possible_moves = getAllLowerMoves(gameBoard)
 		valid_moves = []
@@ -581,7 +581,7 @@ def getOutOfCheckMoves(gameBoard, lowers_turn):
 				valid_moves.append(move)
 
 		return valid_moves
-	
+
 	else:
 		my_possible_moves = getAllUpperMoves(gameBoard)
 		valid_moves = []
@@ -607,7 +607,7 @@ def validDrop(gameBoard, piece, dropLocation, lowers_turn):
 				break
 		if piece_to_drop is None:
 			return -1
-		
+
 		lower_captured.remove(piece_to_drop)
 
 		piece_to_drop.piece_type = piece_to_drop.piece_type.lower();
@@ -629,7 +629,7 @@ def validDrop(gameBoard, piece, dropLocation, lowers_turn):
 		if (checkDetection(gameBoard, (not lowers_turn)) and len(getOutOfCheckMoves(gameBoard, (not lowers_turn))) == 0):
 			return -1
 
-		return 1 
+		return 1
 
 	else:
 
@@ -642,7 +642,7 @@ def validDrop(gameBoard, piece, dropLocation, lowers_turn):
 				break
 		if piece_to_drop is None:
 			return -1
-		
+
 		upper_captured.remove(piece_to_drop)
 
 		piece_to_drop.piece_type = piece_to_drop.piece_type.upper();
@@ -664,7 +664,7 @@ def validDrop(gameBoard, piece, dropLocation, lowers_turn):
 		if (checkDetection(gameBoard, (not lowers_turn)) and len(getOutOfCheckMoves(gameBoard, (not lowers_turn))) == 0):
 			return -1
 
-		return 1  
+		return 1
 
 	return 1
 
@@ -698,7 +698,7 @@ if (not args.i) and (args.f is None):
 
 
 if args.f is not None: #interactive mode
-	
+
 	info = utils.parseTestCase(args.f)
 	#print (info)
 	init_pieces = info['initialPieces']
@@ -759,7 +759,7 @@ if args.f is not None: #interactive mode
 				exit(0)
 
 		elif cmd[0] == 'drop':
-			
+
 			if len(cmd) > 3:
 				printEnd(lowers_turn, last_cmd)
 				printIllegalMove(lowers_turn)
@@ -781,11 +781,11 @@ if args.f is not None: #interactive mode
 				exit(0)
 
 		else:
-			
+
 			printEnd(lowers_turn, last_cmd)
 			printIllegalMove(lowers_turn)
-			exit(0)	
-			
+			exit(0)
+
 		lowers_turn = (not lowers_turn)
 
 
@@ -854,7 +854,7 @@ else:
 				exit(0)
 
 		elif cmd[0] == 'drop':
-			
+
 			if len(cmd) > 3:
 				printIllegalMove(lowers_turn)
 				exit(0)
@@ -873,22 +873,13 @@ else:
 				exit(0)
 
 		else:
-			
+
 			printIllegalMove(lowers_turn)
-			exit(0)	
-			
+			exit(0)
+
 		lowers_turn = (not lowers_turn)
 
 
 	if moves_count >= MOVES_LIMIT:
 		print ("Tie game. Too many moves.")
 		exit(0)
-
-
-
-
-
-
-
-
-

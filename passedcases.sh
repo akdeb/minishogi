@@ -10,7 +10,6 @@ python3 mini_shogi.py -f tests/drop.in | diff -u tests/drop.out -
 python3 mini_shogi.py -f tests/doublePawnDrop.in | diff -u tests/doublePawnDrop.out -
 python3 mini_shogi.py -f tests/dropEmptyHand.in | diff -u tests/dropEmptyHand.out -
 python3 mini_shogi.py -f tests/dropOpponentsPiece.in | diff -u tests/dropOpponentsPiece.out -
-python3 mini_shogi.py -f tests/dropOutOfCheck.in | diff -u tests/dropOutOfCheck.out -
 python3 mini_shogi.py -f tests/dropWrongPiece.in | diff -u tests/dropWrongPiece.out -
 python3 mini_shogi.py -f tests/forcedPawnPromotion.in | diff -u tests/forcedPawnPromotion.out -
 python3 mini_shogi.py -f tests/goldIllegalMove.in | diff -u tests/goldIllegalMove.out -
@@ -50,3 +49,11 @@ python3 mini_shogi.py -f tests/silverPromotion.in | diff -u tests/silverPromotio
 python3 mini_shogi.py -f tests/tieGame.in | diff -u tests/tieGame.out -
 python3 mini_shogi.py -f tests/upperIllegalPromotion.in | diff -u tests/upperIllegalPromotion.out -
 python3 mini_shogi.py -f tests/upperStuckPawnDrop.in | diff -u tests/upperStuckPawnDrop.out -
+python3 mini_shogi.py -f tests/immediatePawnDropMate.in | diff -u tests/immediatePawnDropMate.out -
+python3 mini_shogi.py -f tests/dropOutOfCheck.in | diff -u tests/dropOutOfCheck.out -
+python3 mini_shogi.py -f tests/basicCheck.in | diff -u tests/basicCheck.out -
+python3 mini_shogi.py -f tests/checkmate.in | diff -u tests/checkmate.out -
+python3 mini_shogi.py -f tests/doubleCheck.in | diff -u tests/doubleCheck.out -
+python3 mini_shogi.py -f tests/mateWithDrop.in | diff -u tests/mateWithDrop.out -
+python3 mini_shogi.py -f tests/winOnLastMove.in | diff -u tests/winOnLastMove.out -
+python3 mini_shogi.py -f tests/manyWaysOutOfCheck.in | diff -u tests/manyWaysOutOfCheck.out -

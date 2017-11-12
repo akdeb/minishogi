@@ -7,12 +7,9 @@ class Minishogi(object):
         self.currentPlayer = lower
         self.currentMove = ''
         self.gameInCheck = False
-
         self.boardPieces = {}   #dict of objects
         self.capturedPieces = {lower:[], upper:[]}
-
         self.boardImage = [['' for i in range(5)] for j in range(5)]
-
         self.numberOfMoves = 0
         self.gameOver = False
         self.outMessage = ''
@@ -24,20 +21,9 @@ class Minishogi(object):
         self.makeMovesArray(vals['moves'])
         self.main()
 
-        #for debugging only
-        #self.printPieces()
-        # self.display()
-
     #HACK FOR DEBUGGING PURPOSES ONLY
     def printPieces(self):
         pprint.pprint(self.boardPieces)
-
-
-    def possibleMovesOutOfCheck(self, player):
-        possibleMoves = ['1']
-        #check possible piece movements and check for a check
-        #check for drops and check for check
-        return possibleMoves
 
 
     def isKingExposed(self, king, allOtherPieces, playerWho):
@@ -69,57 +55,65 @@ class Minishogi(object):
         storeBoard = deepcopy(self.boardPieces)
         storeCaptures = deepcopy(self.capturedPieces)
         storeOutMessage = deepcopy(self.outMessage)
-        gameOver = deepcopy(self.gameOver)
-
+        storeGameOver = deepcopy(self.gameOver)
+        storeCurrentPlayer = deepcopy(self.currentPlayer)
+        self.currentPlayer = thePlayerInCheck
         finalPossibleMoves = []
         ourPiecesToMove = {}
         otherPlayerPieces = []
         ourKing = None
         for position in self.boardPieces:
-            player = self.boardPieces[position].getPlayer()
-            if ourKing == None and self.boardPieces[position].getPieceID() == self.correctCase('k',thePlayerInCheck):
-                ourKing = self.boardPieces[position]
-            if player == thePlayerInCheck:
+            if self.boardPieces[position].getPlayer() == thePlayerInCheck:
                 ourPiecesToMove[position] = self.boardPieces[position]
-            else:
-                otherPlayerPieces.append(self.boardPieces[position])
-        # for pc in ourPiecesToMove:
-        #     print(ourPiecesToMove[pc])
-
+        #all possible 'moves'
         for start in ourPiecesToMove:
             possibleEndPositionsForPiece = ourPiecesToMove[start].derivedPieceMove(start, self.boardPieces, thePlayerInCheck)
             for end in possibleEndPositionsForPiece:
-                #restore these values with a deepcopy
                 move = 'move ' + self.convertBackToBoardConfig(start) + ' ' + self.convertBackToBoardConfig(end)
-                #print(move)
                 self.applyMove(move.split(' '))
-                if (not self.isKingExposed(ourKing, otherPlayerPieces, oppositePlayer[thePlayerInCheck])) and self.gameOver == False:
-                    finalPossibleMoves.append(move)
-
+                if self.gameOver == False:
+                    ourKing = None
+                    del otherPlayerPieces[:]
+                    for position in self.boardPieces:
+                        if self.boardPieces[position].getPlayer() == oppositePlayer[thePlayerInCheck]:
+                            otherPlayerPieces.append(self.boardPieces[position])
+                        if ourKing == None and self.boardPieces[position].getPieceID() == self.correctCase('k',thePlayerInCheck):
+                            ourKing = self.boardPieces[position]
+                    if not self.isKingExposed(ourKing, otherPlayerPieces, oppositePlayer[thePlayerInCheck]):
+                        finalPossibleMoves.append(move)
+                #restore these values with a deepcopy
                 self.boardPieces = deepcopy(storeBoard)
                 self.capturedPieces = deepcopy(storeCaptures)
                 self.storeOutMessage = deepcopy(storeOutMessage)
-                self.gameOver = deepcopy(gameOver)
+                self.gameOver = deepcopy(storeGameOver)
 
-        for piece in self.capturedPieces[thePlayerInCheck]:
+        #all possible 'drops'
+        del otherPlayerPieces[:]
+        for position in self.boardPieces:
+            if self.boardPieces[position].getPlayer() == oppositePlayer[thePlayerInCheck]:
+                otherPlayerPieces.append(self.boardPieces[position])
+        ourKing = None
+        for position in self.boardPieces:
+            if ourKing == None and self.boardPieces[position].getPieceID() == self.correctCase('k',thePlayerInCheck):
+                ourKing = self.boardPieces[position]
+                break
+        capPieces = deepcopy(self.capturedPieces[thePlayerInCheck])
+        for piece in capPieces:
             for x in range(5):
                 for y in range(5):
                     move = 'drop ' + piece.getPieceID().lower() + ' ' + self.convertBackToBoardConfig((x,y))
-                    #print(move + str(self.numberOfMoves))
                     self.applyDrop(move.split(' '))
-                    #print(ourKing)
-                    #print(str(self.isKingExposed(ourKing, otherPlayerPieces, oppositePlayer[thePlayerInCheck])))
-                    if (not self.isKingExposed(ourKing, otherPlayerPieces, oppositePlayer[thePlayerInCheck])) and self.gameOver == False:
-                        finalPossibleMoves.append(move)
-
+                    if self.gameOver == False:
+                        if not self.isKingExposed(ourKing, otherPlayerPieces, oppositePlayer[thePlayerInCheck]):
+                            finalPossibleMoves.append(move)
                     self.boardPieces = deepcopy(storeBoard)
                     self.capturedPieces = deepcopy(storeCaptures)
                     self.storeOutMessage = deepcopy(storeOutMessage)
-                    self.gameOver = deepcopy(gameOver)
-
+                    self.gameOver = deepcopy(storeGameOver)
+        self.currentPlayer = deepcopy(storeCurrentPlayer)
         if len(finalPossibleMoves) == 0:
-            return False
-        self.waysOutofCheck = finalPossibleMoves
+            return True
+        self.waysOutofCheck = sorted(finalPossibleMoves)
         return False
 
     def makeMovesArray(self, moves):
@@ -132,7 +126,6 @@ class Minishogi(object):
             # case1: move <pos1> <pos2> (promote)
             # case2: drop <piece> <pos>
             # case3: anything else
-
             if (sequence[0] == 'move') and (len(sequence) == 3 or len(sequence) == 4):
                 if not (self.isLegalPosition(sequence[1]) and self.isLegalPosition(sequence[2])):
                     self.gameOverExiting(1)
@@ -151,7 +144,7 @@ class Minishogi(object):
                     self.applyDrop(sequence)
             else:
                 self.gameOverExiting(1)
-
+            #CHECK FOR A CHECK
             #setting back to previous state
             #two such cases:
             #moving into a check
@@ -160,36 +153,32 @@ class Minishogi(object):
                 self.boardPieces = previousState
                 self.capturedPieces = previousCaptures
                 self.gameOverExiting(1)
-            elif move[0] == 'drop' and move[1] == 'p':
+            elif sequence[0] == 'drop' and sequence[1] == 'p':
                 if self.isThisCheckmate(oppositePlayer[self.currentPlayer]):
                     self.boardPieces = previousState
                     self.capturedPieces = previousCaptures
                     self.gameOverExiting(1)
-            else:
-                #print('printing?')
+                    return
                 self.gameInCheck = False
-            #print('nonlmao' + str(self.numberOfMoves))
+            else:
+                self.gameInCheck = False
             if self.isInCheck(oppositePlayer[self.currentPlayer]):
-                #print('lmao' + str(self.numberOfMoves))
                 if self.isThisCheckmate(oppositePlayer[self.currentPlayer]):
                     self.gameInCheck = False
                     self.gameOverExiting(2)
+                    return
                 self.gameInCheck = True
-
             #if the game is over, break
             if self.gameOver:
                 break
-
             #FIXME try to fix the currentPlayer repitition problem
             self.currentPlayer = oppositePlayer[self.currentPlayer]
             self.numberOfMoves+=1
-
             #FIXME
             if self.numberOfMoves == 400:
                 self.currentPlayer = oppositePlayer[self.currentPlayer]
                 self.gameOverExiting(3)
                 break
-
         #FIXME
         if not self.gameOver:
             self.currentPlayer = oppositePlayer[self.currentPlayer]
@@ -197,11 +186,9 @@ class Minishogi(object):
         return
 
 
-
     def applyMove(self, move):
         start = self.getCoordinates(move[1])
         end = self.getCoordinates(move[2])
-
         if (len(move) == 4):
             #already promoted piece being promoted
             if len(self.boardPieces[start].getPieceID()) == 2:
@@ -215,7 +202,6 @@ class Minishogi(object):
             if self.boardPieces[start].getPieceID() in unpromotablePieces:
                 self.gameOverExiting(1)
                 return
-
         #gibberish piece
         if start not in self.boardPieces:
             self.gameOverExiting(1)
@@ -224,12 +210,10 @@ class Minishogi(object):
         if self.boardPieces[start].getPlayer() != self.currentPlayer:
             self.gameOverExiting(1)
             return
-
         originalBoard = deepcopy(self.boardPieces)
         if not self.boardPieces[start].isMovePossibleDispatcher(start, end, originalBoard, self.currentPlayer):
             self.gameOverExiting(1)
             return
-
         #capture and capturing own piece
         if end in self.boardPieces:
             if self.boardPieces[end].getPlayer() == self.currentPlayer:
@@ -237,17 +221,13 @@ class Minishogi(object):
                 return
             else:
                 self.applyCapture(start, end)
-
         #modify board pieces dict
         self.boardPieces[end] = self.boardPieces[start]
         self.boardPieces[end].setPosition(end)
         del self.boardPieces[start]
-
         #first move a piece and then promote
-        #FIXME maybe create a function for isPromotionZone()
         if len(move) == 4 or (self.boardPieces[end].getPieceID().lower() == 'p' and (start[1] == promotionZone[self.currentPlayer] or end[1] == promotionZone[self.currentPlayer])):
             self.applyPromote(end)
-
 
 
     #change letter case according to current player
@@ -261,55 +241,27 @@ class Minishogi(object):
         del self.boardPieces[end]
 
 
-
-
     def applyDrop(self, move):
         place = self.getCoordinates(move[2])
         dropPiece =  self.correctCase(move[1], self.currentPlayer)
-
         #check if no piece exists at the drop spot
         if place in self.boardPieces:
             self.gameOverExiting(1)
             return
-
         #check if piece exists
         found = False
         if not any(pc.getPieceID() == dropPiece for pc in self.capturedPieces[self.currentPlayer]):
             self.gameOverExiting(1)
             return
-
-        '''
-
-        for pc in self.capturedPieces[self.currentPlayer]:
-            if dropPiece == pc.getPieceID():
-                found = True
-                break
-        if found is False:
-            self.gameOverExiting(1)
-            return
-        '''
-
         if dropPiece.lower() == 'p':
             # same column pawn?
             if any((self.boardPieces[pc].getPieceID() == dropPiece) and (self.boardPieces[pc].getPosition()[0] == place[0]) for pc in self.boardPieces):
                 self.gameOverExiting(1)
                 return
-            '''
-            for pc in self.boardPieces:
-                if (self.boardPieces[pc].getPieceID() in pawnSet) and (self.boardPieces[pc].getPosition()[0] == place[0]):
-                    self.gameOverExiting(1)
-                    return
-            '''
             #dropping to promotion zone
             if place[1] == promotionZone[self.currentPlayer]:
                 self.gameOverExiting(1)
                 return
-        '''
-        obj = (pc.getPieceID() == dropPiece for pc in self.capturedPieces[self.currentPlayer]).next()
-        if not obj:
-            self.capturedPieces[self.currentPlayer].remove(pc)
-
-        '''
         # drop the piece now
         for pc in self.capturedPieces[self.currentPlayer]:
             if pc.getPieceID() == dropPiece:
@@ -317,7 +269,6 @@ class Minishogi(object):
                 self.capturedPieces[self.currentPlayer].remove(pc)
                 break
         return
-
 
 
     def applyPromote(self, end):
@@ -408,9 +359,6 @@ class Minishogi(object):
         return 'This is minishogi'
 
 
-
-
-
 class Piece:
     def __init__(self, pieceID, player, position=None, isPromoted=False):
         self.pieceID = pieceID
@@ -418,9 +366,6 @@ class Piece:
         self.position = position
         self.isPromoted = isPromoted
 
-    '''
-    It is recommended that you check these funtions and change their implementation
-    '''
     def isMovePossibleDispatcher(self, start, end, currentBoard, playerWho):
         if end in self.derivedPieceMove(start, currentBoard, playerWho):
             return True
@@ -448,8 +393,6 @@ class Piece:
                 pieceAtXY = currentBoard.get((x,y),None)
                 if pieceAtXY is None: possibleMove.append((x, y))
                 elif playerWho != pieceAtXY.getPlayer():
-                #and pieceAtXY.getPieceID() not in uncapturablePieces:
-                #pieceAtXY.getPlayer() != self.getPlayer() and pieceAtXY.getPieceID() not in uncapturablePieces:
                     possibleMove.append((x,y))
                     break
                 else:
@@ -460,7 +403,6 @@ class Piece:
     # the gold general and silver general and pawn are unsymmetric
     def handleUnsymmetricPieces(self, val1, val2):
         return val1+val2 if self.getPlayer() == lower else val1-val2
-
 
     def derivedPieceMove(self,position, currentBoard, playerWho):
         print('Should use dervied class class moves!')
