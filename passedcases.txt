@@ -24,6 +24,7 @@ python3 mini_shogi.py -f tests/kingPromotion.in | diff -u tests/kingPromotion.ou
 python3 mini_shogi.py -f tests/loseOnLastMove.in | diff -u tests/loseOnLastMove.out -
 python3 mini_shogi.py -f tests/lowerIllegalPromotion.in | diff -u tests/lowerIllegalPromotion.out -
 python3 mini_shogi.py -f tests/lowerStuckPawnDrop.in | diff -u tests/lowerStuckPawnDrop.out -
+python3 mini_shogi.py -f tests/movingIntoCheck.in | diff -u tests/movingIntoCheck.out -
 python3 mini_shogi.py -f tests/moveOutOfCheck.in | diff -u tests/moveOutOfCheck.out -
 python3 mini_shogi.py -f tests/occupiedDrop.in | diff -u tests/occupiedDrop.out -
 python3 mini_shogi.py -f tests/pawnIllegalMove.in | diff -u tests/pawnIllegalMove.out -

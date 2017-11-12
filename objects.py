@@ -40,50 +40,60 @@ class Minishogi(object):
         return possibleMoves
 
 
-    def isInCheck(self):
-        kingPieces = {}
-        pieceColors = {upper:[], lower:[]}
-        for position in self.boardPieces:
-            if self.boardPieces[position].getPieceID() in uncapturablePieces:
-                kingPieces[self.boardPieces[position].getPlayer()] = self.boardPieces[position]
-            pieceColors[self.boardPieces[position].getPlayer()].append(self.boardPieces[position])
-        if self.isKingExposed(kingPieces[self.currentPlayer], pieceColors[self.oppositePlayer(self.currentPlayer)]):
-            return True
-        return False
-
-
-    def isKingExposed(self, kingPosition, allOtherPieces):
-        for position in allOtherPieces:
-            if allOtherPieces[position].isMovePossibleDispatcher(position, kingPosition.getPosition(), self.boardPieces):
+    def isKingExposed(self, kingPosition, allOtherPieces, playerWho):
+        for piece in allOtherPieces:
+            if piece.isMovePossibleDispatcher(piece.getPosition(), kingPosition.getPosition(), self.boardPieces, playerWho):
                 return True
         return False
 
 
-    def isThisCheckmate(self):
-        return ['1']
+    #getting shadowing here
+    def isInCheck(self, thePlayerInCheck):
+        kingPieces = {}
+        pieceColors = {upper:[], lower:[]}
+        for position in self.boardPieces:
+            currPlayer = self.boardPieces[position].getPlayer()
+            if self.boardPieces[position].getPieceID() in uncapturablePieces:
+                kingPieces[currPlayer] = self.boardPieces[position]
+            pieceColors[currPlayer].append(self.boardPieces[position])
+        if self.isKingExposed(kingPieces[thePlayerInCheck], pieceColors[oppositePlayer[thePlayerInCheck]], oppositePlayer[thePlayerInCheck]):
+            return True
+        return False
+
+
+    def convertBackToBoardCnfig(sel, position):
+        x,y = pos
+        return str(chr(97+x)) + str(y+1)
+
+    def isThisCheckmate(self, thePlayerInCheck):
+        storeBoard = deepcopy(self.boardPieces)
+        storeCaptures = deepcopy(self.capturedPieces)
+        storeExitValue = deepcopy(self.gameOverExiting)
+
+
+        finalPossibleMoves = []
+        ourPiecesToMove = {}
+        otherPlayerPieces = {}
+        ourKing = any(self.boardPieces[pc].getPieceID() == self.correctCase('k', thePlayerInCheck) for pc in self.boardPieces)
+        for position in self.boardPieces:
+            player = self.boardPieces[position].getPlayer()
+            if player == thePlayerInCheck:
+                ourPiecesToMove[position] = self.boardPieces[position]
+            else:
+                otherPlayerPieces[position] = self.boardPieces[position]
+        for ourEveryPiecePosition in ourPiecesToMove:
+            possibleEndPositionsForPiece = ourPiecesToMove[ourEveryPiecePosition].derivedPieceMove(ourEveryPiecePosition, self.boardPieces, thePlayerInCheck)
+            for everyEnding in possibleEndPositionsForPiece:
+                self.gameOverExiting = 
+        return True
 
     def makeMovesArray(self, moves):
         for move in moves:
             sequence = move.split(' ')
             self.currentMove = move
             del self.waysOutofCheck[:]
-            self.gameInCheck = False
-
-            #check if there is a check on current player
-            '''
-            if self.isInCheck():
-                if self.isThisCheckmate():
-                    self.gameOverExiting(2)
-                    break
-                possibleMoves = self.isThisCheckmate()
-                if len(possibleMoves) == 0:
-                    self.gameOverExiting(2)
-                    break
-                self.gameInCheck = True
-                if move not in possibleMoves:
-                    self.gameOverExiting(1)
-                    break
-            '''
+            previousState = deepcopy(self.boardPieces)
+            previousCaptures = deepcopy(self.capturedPieces)
             # case1: move <pos1> <pos2> (promote)
             # case2: drop <piece> <pos>
             # case3: anything else
@@ -107,9 +117,42 @@ class Minishogi(object):
             else:
                 self.gameOverExiting(1)
 
+            #setting back to previous state
+            #two such cases:
+            #moving into a check
+            #dropping pawn for mate
+            if self.isInCheck(self.currentPlayer) or (self.isThisCheckmate(oppositePlayer[self.currentPlayer]) and move[0] == 'drop' and move[1] == 'p'):
+                self.boardPieces = previousState
+                self.capturedPieces = previousCaptures
+                self.gameOverExiting(1)
+            else:
+                #print('printing?')
+                self.gameInCheck = False
+            #print('nonlmao' + str(self.numberOfMoves))
+            if self.isInCheck(oppositePlayer[self.currentPlayer]):
+                #print('lmao' + str(self.numberOfMoves))
+                if isThisCheckmate(oppositePlayer[self.currentPlayer]):
+                    self.gameInCheck = False
+                    self.gameOverExiting(2)
+                self.gameInCheck = True
+            #print(str(self.gameInCheck))
+
+            #check if there is a check on current player
+            #if self.isInCheck(self.currentPlayer):
+                # if self.isThisCheckmate():
+                #     self.gameOverExiting(2)
+                #     break
+                # possibleMoves = self.isThisCheckmate()
+                # if len(possibleMoves) == 0:
+                #     self.gameOverExiting(2)
+                #     break
+                #self.gameInCheck = True
+                # if move not in possibleMoves:
+                #     self.gameOverExiting(1)
+                #     break
             #check if next player is in checkMate state
-            if len(self.possibleMovesOutOfCheck(oppositePlayer[self.currentPlayer])) == 0:
-                self.gameOverExiting(2)
+            # if len(self.possibleMovesOutOfCheck(oppositePlayer[self.currentPlayer])) == 0:
+            #     self.gameOverExiting(2)
 
             #if the game is over, break
             if self.gameOver:
@@ -130,8 +173,6 @@ class Minishogi(object):
             self.currentPlayer = oppositePlayer[self.currentPlayer]
             self.gameOverExiting(200)
         return
-
-
 
 
 
@@ -163,7 +204,7 @@ class Minishogi(object):
             return
 
         originalBoard = deepcopy(self.boardPieces)
-        if not self.boardPieces[start].isMovePossibleDispatcher(start, end, originalBoard):
+        if not self.boardPieces[start].isMovePossibleDispatcher(start, end, originalBoard, self.currentPlayer):
             self.gameOverExiting(1)
             return
 
@@ -188,12 +229,12 @@ class Minishogi(object):
 
 
     #change letter case according to current player
-    def correctCase(self, piece):
-        return piece.lower() if self.currentPlayer==lower else piece.upper()
+    def correctCase(self, piece, playerWho):
+        return piece.lower() if playerWho==lower else piece.upper()
 
 
     def applyCapture(self, start, end):
-        capPiece = self.correctCase(self.boardPieces[end].getPieceID())
+        capPiece = self.correctCase(self.boardPieces[end].getPieceID(), self.currentPlayer)
         self.capturedPieces[self.currentPlayer].append(shogiPieces[capPiece.lower()](capPiece[1] if len(capPiece) == 2 else capPiece, self.currentPlayer))
         del self.boardPieces[end]
 
@@ -202,7 +243,7 @@ class Minishogi(object):
 
     def applyDrop(self, move):
         place = self.getCoordinates(move[2])
-        dropPiece =  self.correctCase(move[1])
+        dropPiece =  self.correctCase(move[1], self.currentPlayer)
 
         #check if no piece exists at the drop spot
         if place in self.boardPieces:
@@ -328,11 +369,13 @@ class Minishogi(object):
         print('Captures UPPER: ' + ' '.join([i.getPieceID() for i in self.capturedPieces[upper]]))
         print('Captures lower: ' + ' '.join([i.getPieceID() for i in self.capturedPieces[lower]]))
         if self.gameInCheck:
-            print('\n' + self.currentPlayer + ' player is in check!')
+            print('\n' + oppositePlayer[self.currentPlayer] + ' player is in check!')
             print('Available moves:')
             for possibleMove in self.waysOutofCheck:
                 print(possibleMove)
-        print('\n' + self.outMessage)
+            print(self.outMessage)
+        else:
+            print('\n' + self.outMessage)
 
     # JUST FOR DEBUGGING
     def display(self):
@@ -356,8 +399,8 @@ class Piece:
     '''
     It is recommended that you check these funtions and change their implementation
     '''
-    def isMovePossibleDispatcher(self, start, end, currentBoard):
-        if end in self.derivedPieceMove(start, currentBoard):
+    def isMovePossibleDispatcher(self, start, end, currentBoard, playerWho):
+        if end in self.derivedPieceMove(start, currentBoard, playerWho):
             return True
         return False
 
@@ -368,13 +411,13 @@ class Piece:
             return True
         return False
 
-    def noPossibleConflict(self, position, currentBoard):
+    def noPossibleConflict(self, position, currentBoard, playerWho):
         #''' is there a conflict (without thinking of check) if there is a piece here'''
-        if self.stillInsideBoard(position) and (position not in currentBoard or (currentBoard[position].getPlayer() != self.getPlayer())):
+        if self.stillInsideBoard(position) and (position not in currentBoard or (currentBoard[position].getPlayer() != playerWho)):
             return True
         return False
 
-    def performMovesIter(self,position,currentBoard,pieceMoves):
+    def performMovesIter(self,position,currentBoard,pieceMoves, playerWho):
         possibleMove = []
         pc_x, pc_y = position
         for xi,yi in pieceMoves:
@@ -382,7 +425,9 @@ class Piece:
             while self.stillInsideBoard((x,y)):
                 pieceAtXY = currentBoard.get((x,y),None)
                 if pieceAtXY is None: possibleMove.append((x, y))
-                elif pieceAtXY.getPlayer() != self.getPlayer() and pieceAtXY.getPieceID() not in uncapturablePieces:
+                elif playerWho != pieceAtXY.getPlayer():
+                #and pieceAtXY.getPieceID() not in uncapturablePieces:
+                #pieceAtXY.getPlayer() != self.getPlayer() and pieceAtXY.getPieceID() not in uncapturablePieces:
                     possibleMove.append((x,y))
                     break
                 else:
@@ -395,7 +440,7 @@ class Piece:
         return val1+val2 if self.getPlayer() == lower else val1-val2
 
 
-    def derivedPieceMove(self,position, currentBoard):
+    def derivedPieceMove(self,position, currentBoard, playerWho):
         print('Should use dervied class class moves!')
 
     def getPieceID(self):
@@ -432,43 +477,58 @@ class Piece:
 #classes inheriting from Piece
 #virtual function derivedPieceMove calls performMoves
 class Pawn(Piece):
-    def derivedPieceMove(self,position, currentBoard):
+    def derivedPieceMove(self,position, currentBoard, playerWho=None):
+        if playerWho is None : playerWho = self.getPlayer()
         x,y=position
-        return [(self.handleUnsymmetricPieces(x,i), self.handleUnsymmetricPieces(y,j)) for (i,j) in upsq if self.noPossibleConflict((self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)), currentBoard)]
+        return [(self.handleUnsymmetricPieces(x,i), self.handleUnsymmetricPieces(y,j)) for (i,j) in upsq if self.noPossibleConflict((self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)), currentBoard, playerWho)]
         pass
 
 class King(Piece):
-    def derivedPieceMove(self,position, currentBoard):
+    def derivedPieceMove(self,position, currentBoard, playerWho=None):
+        if playerWho is None:
+            playerWho = self.getPlayer()
         x,y=position
-        return [(x+i, y+j) for (i,j) in udlr + topdiag + botdiag if self.noPossibleConflict((x+i, y+j), currentBoard)]
+        return [(x+i, y+j) for (i,j) in udlr + topdiag + botdiag if self.noPossibleConflict((x+i, y+j), currentBoard, playerWho)]
 
 class Gold(Piece):
-    def derivedPieceMove(self,position, currentBoard):
+    def derivedPieceMove(self,position, currentBoard, playerWho=None):
+        if playerWho is None:
+            playerWho = self.getPlayer()
         x,y = position
-        return [(self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)) for (i,j) in udlr + topdiag if self.noPossibleConflict((self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)), currentBoard)]
+        return [(self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)) for (i,j) in udlr + topdiag if self.noPossibleConflict((self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)), currentBoard, playerWho)]
 
 class Silver(Piece):
-    def derivedPieceMove(self,position, currentBoard):
+    def derivedPieceMove(self,position, currentBoard, playerWho=None):
+        if playerWho is None:
+            playerWho = self.getPlayer()
         x,y = position
-        return [(self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)) for (i,j) in topdiag + botdiag + upsq if self.noPossibleConflict((self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)), currentBoard)]
+        return [(self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)) for (i,j) in topdiag + botdiag + upsq if self.noPossibleConflict((self.handleUnsymmetricPieces(x,i),self.handleUnsymmetricPieces(y,j)), currentBoard, playerWho)]
 
 class Rook(Piece):
-    def derivedPieceMove(self,position, currentBoard):
-        return self.performMovesIter(position, currentBoard, udlr)
+    def derivedPieceMove(self,position, currentBoard, playerWho=None):
+        if playerWho is None:
+            playerWho = self.getPlayer()
+        return self.performMovesIter(position, currentBoard, udlr, playerWho)
 
 class Bishop(Piece):
-    def derivedPieceMove(self,position, currentBoard):
-        return self.performMovesIter(position, currentBoard, topdiag+botdiag)
+    def derivedPieceMove(self,position, currentBoard, playerWho=None):
+        if playerWho is None:
+            playerWho = self.getPlayer()
+        return self.performMovesIter(position, currentBoard, topdiag+botdiag, playerWho)
 
-class dragonHorse(Piece):
-    def derivedPieceMove(self,position, currentBoard):
-        x,y = position
-        return [(x+i, y+j) for (i,j) in udlr + topdiag + botdiag if self.noPossibleConflict((x+i, y+j), currentBoard)] + self.performMovesIter(position, currentBoard, topdiag+botdiag)
+class dragonHorse(King, Bishop):
+    def derivedPieceMove(self,position, currentBoard, playerWho=None):
+        if playerWho is None:
+            playerWho = self.getPlayer()
+        return King.derivedPieceMove(self, position,currentBoard, playerWho) + Bishop.derivedPieceMove(self, position, currentBoard, playerWho)
 
-class dragonKing(Piece):
-    def derivedPieceMove(self,position, currentBoard):
-        x,y = position
-        return [(x+i, y+j) for (i,j) in udlr + topdiag + botdiag if self.noPossibleConflict((x+i, y+j), currentBoard)] + self.performMovesIter(position, currentBoard, udlr)
+
+class dragonKing(King, Rook):
+    def derivedPieceMove(self,position, currentBoard, playerWho=None):
+        if playerWho is None:
+            playerWho = self.getPlayer()
+        return King.derivedPieceMove(self, position,currentBoard, playerWho) + Rook.derivedPieceMove(self, position, currentBoard, playerWho)
+
 
 #define piece movements
 udlr = [(0,1), (1,0), (0,-1), (-1,0)]

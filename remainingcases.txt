@@ -4,5 +4,4 @@ python3 mini_shogi.py -f tests/doubleCheck.in | diff -u tests/doubleCheck.out -
 python3 mini_shogi.py -f tests/immediatePawnDropMate.in | diff -u tests/immediatePawnDropMate.out -
 python3 mini_shogi.py -f tests/manyWaysOutOfCheck.in | diff -u tests/manyWaysOutOfCheck.out -
 python3 mini_shogi.py -f tests/mateWithDrop.in | diff -u tests/mateWithDrop.out -
-python3 mini_shogi.py -f tests/movingIntoCheck.in | diff -u tests/movingIntoCheck.out -
 python3 mini_shogi.py -f tests/winOnLastMove.in | diff -u tests/winOnLastMove.out -
